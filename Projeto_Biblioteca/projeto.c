@@ -14,13 +14,12 @@ Livro *p;
 int quantidade = 0;
 
 void salvarLivros() {
-    FILE *arquivo = fopen("livros.dat", "wb"); // Abre o arquivo para escrita binária
+    FILE *arquivo = fopen("livros.dat", "wb");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo para salvar.\n");
         return;
     }
     
-// Gravação da quantidade de livros e os livros
     fwrite(&quantidade, sizeof(int), 1, arquivo);
     fwrite(p, sizeof(Livro), quantidade, arquivo);
     
@@ -29,7 +28,7 @@ void salvarLivros() {
 }
 
 void carregarLivros() {
-    FILE *arquivo = fopen("livros.dat", "rb"); // Abre o arquivo para leitura binária
+    FILE *arquivo = fopen("livros.dat", "rb");
     if (arquivo == NULL) {
         printf("Nenhum arquivo de livros encontrado. Iniciando com biblioteca vazia.\n");
         return;
@@ -66,6 +65,24 @@ void adicionarLivros() {
     quantidade++;
     
     printf("Livro Cadastrado com Sucesso\n");
+    
+    char opcao;
+    printf("Deseja adicionar outro livro? (s/n) ");
+    scanf(" %c", &opcao);
+    getchar();
+    
+    if (opcao == 's' || opcao == 'S') {
+        adicionarLivros(); // Chamada recursiva para adicionar outro livro
+    }
+}
+
+void listarRecursivo(int index) {
+    if (index >= quantidade) {
+        return;
+    }
+    printf("----\nID: %d\nTitulo: %s\nAutor: %s\nAno de Publicacao: %d\nDisponivel: %s\n----\n", 
+        p[index].id, p[index].titulo, p[index].autor, p[index].ano, p[index].disponivel ? "Sim" : "Nao");
+    listarRecursivo(index + 1); // Chamada recursiva para o próximo livro
 }
 
 void listarLivros() {
@@ -74,10 +91,7 @@ void listarLivros() {
         return;
     }
     
-    for (int i = 0; i < quantidade; i++) {
-        printf("----\nID: %d\nTitulo: %s\nAutor: %s\nAno de Publicacao: %d\nDisponivel: %s\n----\n", 
-            p[i].id, p[i].titulo, p[i].autor, p[i].ano, p[i].disponivel ? "Sim" : "Nao");
-    }
+    listarRecursivo(0); // Inicia a recursão a partir do índice 0
 }
 
 void retirarLivro() {
@@ -96,10 +110,9 @@ void retirarLivro() {
         return;
     }
     
-// Remove o livro deslocando os elementos do vetor
     for (int i = id - 1; i < quantidade - 1; i++) {
         p[i] = p[i + 1];
-        p[i].id = i + 1;  // Atualiza o ID para manter a sequência
+        p[i].id = i + 1;
     }
     quantidade--;
     
