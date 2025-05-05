@@ -149,6 +149,19 @@ void devolverLivro() {
     printf("Livro devolvido com sucesso!\n");
 }
 
+int lerOpcaoRecursiva() {
+    int opcao;
+    printf("\nEscolha uma opcao: ");
+    scanf("%d", &opcao);
+    getchar();
+    
+    if (opcao < 1 || opcao > 6) {
+        printf("Opcao invalida, tente novamente\n");
+        return lerOpcaoRecursiva(); // Chamada recursiva aqui
+    }
+    return opcao;
+}
+
 int main() {
     int opcao;
     
@@ -168,9 +181,8 @@ int main() {
         printf("4. Devolver Livro \n");
         printf("5. Retirar Livro\n");
         printf("6. Sair\n");
-        printf("\nEscolha uma opcao: ");
-        scanf("%d", &opcao);
-        getchar();
+        
+        opcao = lerOpcaoRecursiva(); // Validação recursiva
         
         switch (opcao) {
             case 1:
