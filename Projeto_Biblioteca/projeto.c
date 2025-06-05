@@ -2,6 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef enum {EMPRESTAR, DEVOLVER} TipoOperacao;
+
+typedef struct sOperacao {
+    TipoOperacao tipo;
+    int id;
+    int disponivel_anterior;
+} Operacao;
+
+typedef struct sNoPilha {
+    Operacao operacao;
+    struct sNoPilha *prox;
+} NoPilha;
+
 typedef struct sLivro {
     int id;
     int ano;
@@ -12,6 +25,45 @@ typedef struct sLivro {
 
 Livro *p;
 int quantidade = 0;
+NoPilha *topo = NULL;
+
+void push(TipoOperacao tipo, int id, int disponivel_anterior) {
+    NoPilha *novo = (NoPilha *) malloc(sizeof(NoPilha));
+    if (novo == NULL) {
+        printf("Erro ao alocar memoria para a pilha\n");
+        return;
+    }
+    novo->operacao.tipo = tipo;
+    novo->operacao.id = id;
+    novo->operacao.disponivel_anterior = disponivel_anterior;
+    novo->prox = topo;
+    topo = novo;
+}
+
+int pop(Operacao *op) {
+    if (topo == NULL) {
+        return 0;
+    }
+    NoPilha *temp = topo;
+    *op = topo->operacao;
+    topo = topo->prox;
+    free(temp);
+    return 1;
+}
+
+void desfazer() {
+    Operacao op;
+    if (pop(&op)) {
+        if (op.id < 1 || op.id > quantidade) {
+            printf("Livro com ID %d nao existe mais. Nao foi possivel desfazer.\n", op.id);
+            return;
+        }
+        p[op.id - 1].disponivel = op.disponivel_anterior;
+        printf("Operacao desfeita com sucesso.\n");
+    } else {
+        printf("Nenhuma operacao para desfazer.\n");
+    }
+}
 
 void salvarLivros() {
     FILE *arquivo = fopen("livros.dat", "wb");
@@ -72,7 +124,7 @@ void adicionarLivros() {
     getchar();
     
     if (opcao == 's' || opcao == 'S') {
-        adicionarLivros(); // Chamada recursiva para adicionar outro livro
+        adicionarLivros();
     }
 }
 
@@ -82,7 +134,7 @@ void listarRecursivo(int index) {
     }
     printf("----\nID: %d\nTitulo: %s\nAutor: %s\nAno de Publicacao: %d\nDisponivel: %s\n----\n", 
         p[index].id, p[index].titulo, p[index].autor, p[index].ano, p[index].disponivel ? "Sim" : "Nao");
-    listarRecursivo(index + 1); // Chamada recursiva para o próximo livro
+    listarRecursivo(index + 1);
 }
 
 void listarLivros() {
@@ -91,7 +143,7 @@ void listarLivros() {
         return;
     }
     
-    listarRecursivo(0); // Inicia a recursão a partir do índice 0
+    listarRecursivo(0);
 }
 
 void retirarLivro() {
@@ -130,7 +182,9 @@ void emprestarLivro() {
         return;
     }
     
+    int disponivel_anterior = p[id - 1].disponivel;
     p[id - 1].disponivel = 0;
+    push(EMPRESTAR, id, disponivel_anterior);
     printf("Livro emprestado com sucesso!\n");
 }
 
@@ -145,7 +199,9 @@ void devolverLivro() {
         return;
     }
     
+    int disponivel_anterior = p[id - 1].disponivel;
     p[id - 1].disponivel = 1;
+    push(DEVOLVER, id, disponivel_anterior);
     printf("Livro devolvido com sucesso!\n");
 }
 
@@ -167,7 +223,8 @@ int main() {
         printf("3. Emprestar Livro \n");
         printf("4. Devolver Livro \n");
         printf("5. Retirar Livro\n");
-        printf("6. Sair\n");
+        printf("6. Desfazer\n");
+        printf("7. Sair\n");
         printf("\nEscolha uma opcao: ");
         scanf("%d", &opcao);
         getchar();
@@ -189,6 +246,9 @@ int main() {
                 retirarLivro();
                 break;
             case 6:
+                desfazer();
+                break;
+            case 7:
                 printf("Saindo...\n");
                 salvarLivros();
                 free(p);
