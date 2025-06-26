@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h> // Para INT_MAX
+#include <limits.h>
 
 #define MAX_LIVROS 20
 
